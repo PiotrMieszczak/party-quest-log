@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quest Log Mock</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Signika:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Follows Synced Music's design system (foundry-music/DESIGN.md):
+   neutrals mixed from currentColor, one Foundry-orange accent for what is "in play",
+   flat inside the window, Signika only, 0.8–1.15rem, the 2px progress line as signature. */
+
+/* Mock-only stand-in for Foundry's window + theme (the module never styles these). */
+:root { --desk: #3b3833; --win-bg: #1f1d1a; --win-text: #e7e2d6; --win-edge: #000; --head-bg: #161512; }
+:root[data-theme="light"] { --desk: #9c968a; --win-bg: #f1ede4; --win-text: #1f1d1a; --win-edge: #b9b2a2; --head-bg: #e2ddd1; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--desk); font: 14px/1.4 Signika, sans-serif; }
+.window { width: min(1000px, 100%); height: 660px; display: flex; flex-direction: column; color: var(--win-text); background: var(--win-bg); border: 1px solid var(--win-edge); border-radius: 6px; overflow: hidden; }
+.titlebar { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; background: var(--head-bg); border-bottom: 1px solid var(--win-edge); font-weight: 600; }
+.titlebar .grow { flex: 1; }
+.titlebar button { border: 0; background: none; color: inherit; opacity: 0.7; padding: 4px 6px; cursor: pointer; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { display: inline-flex; align-items: center; justify-content: center; gap: 0.4em; min-height: 2rem; padding: 0 0.75rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: 3px; background: color-mix(in srgb, currentColor 6%, transparent); cursor: pointer; line-height: 1; white-space: nowrap; }
+button:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+input[type=text], input[type=search], select, textarea { height: 2rem; padding: 0 0.5rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: 3px; background: color-mix(in srgb, currentColor 5%, transparent); }
+input[type=checkbox] { width: 15px; height: 15px; margin: 0; accent-color: var(--win-text); }
+
+/* ── Module styles (what ships) ─────────────────────── */
+.pql {
+  --pql-accent: #ff6400;
+  --pql-on-accent: #1b1610;
+  --pql-line: color-mix(in srgb, currentColor 18%, transparent);
+  --pql-fill: color-mix(in srgb, currentColor 7%, transparent);
+  --pql-fill-strong: color-mix(in srgb, currentColor 13%, transparent);
+  --pql-muted: color-mix(in srgb, currentColor 68%, transparent);
+  --pql-wash: color-mix(in srgb, var(--pql-accent) 14%, transparent);
+  --pql-radius: 4px;
+  flex: 1; display: grid; grid-template-columns: 300px 1fr; min-height: 0;
+}
+:root[data-theme="light"] .pql { --pql-accent: #b84400; --pql-on-accent: #fff; }
+.pql ::selection { background: var(--pql-wash); }
+.pql :focus-visible { outline: 2px solid var(--pql-accent); outline-offset: 1px; box-shadow: none; }
+.pql p { margin: 0; }
+.pql .num { font-variant-numeric: tabular-nums; }
+.pql .icon { width: 2rem; padding: 0; flex: none; }
+.pql .primary, .pql .primary:hover { background: var(--pql-accent); border-color: var(--pql-accent); color: var(--pql-on-accent); font-weight: 600; }
+.pql .primary:hover { filter: brightness(1.08); }
+
+/* Left: list */
+.pql-list { display: flex; flex-direction: column; gap: 0.75rem; min-height: 0; padding: 0.75rem; border-right: 1px solid var(--pql-line); }
+.pql-status-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.pql-status-tabs button { flex: 1; padding: 0 0.5rem; background: var(--pql-fill); border-color: var(--pql-line); }
+.pql-status-tabs button[aria-selected="true"] { background: var(--pql-fill-strong); border-color: currentColor; font-weight: 600; }
+.pql-count { font-size: 0.8em; font-variant-numeric: tabular-nums; color: var(--pql-muted); font-weight: 400; }
+.pql-tools { display: flex; gap: 0.35rem; }
+.pql-tools input { flex: 1; min-width: 0; }
+.pql-quests { list-style: none; margin: 0; padding: 0; flex: 1; overflow-y: auto; border: 1px solid var(--pql-line); border-radius: var(--pql-radius); scrollbar-width: thin; scrollbar-color: var(--pql-line) transparent; }
+.pql-group { padding: 0.35rem 0.5rem; font-size: 0.8rem; color: var(--pql-muted); background: var(--pql-fill); border-bottom: 1px solid var(--pql-line); }
+.pql-quest { display: grid; grid-template-columns: 1fr auto; gap: 0.15rem 0.5rem; align-items: center; min-height: 3rem; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--pql-line); cursor: pointer; }
+.pql-quest:last-child { border-bottom: none; }
+.pql-quest:hover { background: var(--pql-fill); }
+.pql-quest[aria-current="true"] { background: var(--pql-fill-strong); }
+.pql-quest .t { display: flex; align-items: center; gap: 0.35rem; min-width: 0; font-weight: 600; }
+.pql-quest .t span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pql-quest .sub { font-size: 0.8rem; color: var(--pql-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pql-quest .side { grid-row: 1 / 3; grid-column: 2; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; font-size: 0.8rem; color: var(--pql-muted); }
+.pql-quest .fa-thumbtack { color: var(--pql-accent); font-size: 0.75rem; }
+.pql-quest.is-failed .t span { color: var(--pql-muted); text-decoration: line-through; }
+.pql-unread { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.pql-empty { padding: 0.75rem; color: var(--pql-muted); text-align: center; line-height: 1.4; }
+
+/* The signature 2px line */
+.pql-line { height: 2px; border-radius: 1px; background: var(--pql-line); overflow: hidden; }
+.pql-line > span { display: block; height: 100%; background: var(--pql-accent); }
+.pql-quest .pql-line { width: 3rem; }
+
+/* Right: detail */
+.pql-detail { display: flex; flex-direction: column; gap: 0.75rem; min-height: 0; padding: 0.75rem; }
+.pql-head { display: grid; gap: 0.35rem; padding: 0.75rem; background: var(--pql-fill); border: 1px solid var(--pql-line); border-radius: var(--pql-radius); }
+.pql-head-top { display: flex; align-items: flex-start; gap: 0.5rem; }
+.pql-title { flex: 1; margin: 0; font-size: 1.15rem; font-weight: 600; line-height: 1.25; text-wrap: balance; }
+.pql-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; font-size: 0.9rem; color: var(--pql-muted); }
+.pql-meta i { margin-right: 0.3em; }
+.pql-meta a { color: inherit; text-decoration: underline; text-decoration-color: var(--pql-line); text-underline-offset: 3px; }
+.pql-status { display: inline-flex; align-items: center; gap: 0.35em; padding: 0 0.5rem; min-height: 1.5rem; border: 1px solid var(--pql-line); border-radius: 3px; font-size: 0.8rem; font-weight: 600; color: var(--pql-muted); }
+.pql-status.active { color: var(--pql-accent); border-color: var(--pql-accent); }
+.pql-progress { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+.pql-progress .pql-line { flex: 1; }
+.pql-progress .num { font-size: 0.8rem; color: var(--pql-muted); }
+.pql .pin[aria-pressed="true"] { color: var(--pql-accent); border-color: var(--pql-accent); }
+
+.pql-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.pql-tabs button { padding: 0 0.6rem; background: var(--pql-fill); border-color: var(--pql-line); }
+.pql-tabs button[aria-selected="true"] { background: var(--pql-fill-strong); border-color: currentColor; font-weight: 600; }
+.pql-tabs .gm { margin-left: auto; }
+.pql-gm-badge { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; padding: 0.05rem 0.3rem; border: 1px solid var(--pql-line); border-radius: 2px; color: var(--pql-muted); }
+
+.pql-panel { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; scrollbar-width: thin; scrollbar-color: var(--pql-line) transparent; }
+.pql-label { font-size: 0.8rem; color: var(--pql-muted); margin-bottom: 0.25rem; }
+.pql-prose { max-width: 68ch; line-height: 1.45; }
+
+.pql-rows { list-style: none; margin: 0; padding: 0; border: 1px solid var(--pql-line); border-radius: var(--pql-radius); }
+.pql-rows > li { display: flex; align-items: center; gap: 0.5rem; min-height: 2.5rem; padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--pql-line); }
+.pql-rows > li:last-child { border-bottom: none; }
+.pql-rows > li:hover { background: var(--pql-fill); }
+
+.pql-entry { align-items: baseline !important; }
+.pql-entry time { flex: none; width: 3.5rem; font-size: 0.8rem; color: var(--pql-muted); font-variant-numeric: tabular-nums; }
+.pql-entry p { max-width: 64ch; padding: 0.35rem 0; line-height: 1.45; }
+.pql-new { margin-left: 0.4rem; font-size: 0.7rem; font-weight: 600; color: var(--pql-accent); }
+
+.pql-todo label { flex: 1; min-width: 0; cursor: pointer; }
+.pql-todo.sub { padding-left: 2rem; }
+.pql-todo.done label { color: var(--pql-muted); text-decoration: line-through; }
+.pql-todo.next { background: var(--pql-wash); }
+.pql-todo.next label { font-weight: 600; }
+.pql-tag { font-size: 0.75rem; color: var(--pql-muted); }
+.pql-tag.box { padding: 0 0.3rem; border: 1px solid var(--pql-line); border-radius: 2px; }
+.pql .row-icon { min-height: 1.75rem; width: 1.75rem; padding: 0; font-size: 0.8rem; background: transparent; border-color: transparent; color: var(--pql-muted); }
+.pql .row-icon:hover { background: var(--pql-fill-strong); color: inherit; }
+.pql-add { display: flex; gap: 0.5rem; }
+.pql-add input { flex: 1; min-width: 0; }
+
+.pql-note { align-items: flex-start !important; padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.pql-avatar { flex: none; width: 1.75rem; height: 1.75rem; border-radius: 50%; display: grid; place-items: center; font-size: 0.75rem; font-weight: 600; color: #1b1610; }
+.pql-note .who { font-size: 0.8rem; color: var(--pql-muted); }
+.pql-note .who b { color: var(--win-text); font-weight: 600; margin-right: 0.35rem; }
+.pql-note p { max-width: 64ch; line-height: 1.45; }
+.pql-compose { display: grid; gap: 0.35rem; }
+.pql-compose textarea { height: 4rem; padding: 0.4rem 0.5rem; resize: vertical; }
+.pql-compose button { justify-self: end; }
+
+.pql-reward .ico { flex: none; width: 2rem; height: 2rem; display: grid; place-items: center; border: 1px solid var(--pql-line); border-radius: 3px; background: var(--pql-fill); color: var(--pql-muted); }
+.pql-reward .grow { flex: 1; min-width: 0; }
+.pql-reward .name { font-weight: 600; }
+.pql-reward .kind { font-size: 0.8rem; color: var(--pql-muted); }
+.pql-reward.item { cursor: grab; }
+.pql-reward.unknown .name { color: var(--pql-muted); letter-spacing: 0.08em; }
+.pql-claimed { font-size: 0.8rem; color: var(--pql-muted); }
+.pql-hint { font-size: 0.8rem; color: var(--pql-muted); }
+
+.pql-gm { padding: 0.75rem; border: 1px dashed var(--pql-line); border-radius: var(--pql-radius); display: grid; gap: 0.5rem; }
+
+@media (max-width: 760px) { .window { height: auto; } .pql { grid-template-columns: 1fr; } .pql-list { border-right: 0; border-bottom: 1px solid var(--pql-line); max-height: 340px; } }
+</style>
+</head>
+<body>
+<div class="window" role="application" aria-label="Quest Log">
+  <div class="titlebar">
+    <i class="fa-solid fa-book-bookmark" aria-hidden="true"></i><span>Quest Log</span>
+    <span class="grow"></span>
+    <button type="button" id="theme" aria-label="Toggle light or dark"><i class="fa-solid fa-circle-half-stroke"></i></button>
+    <button type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="pql">
+    <aside class="pql-list">
+      <div class="pql-status-tabs" role="tablist" aria-label="Quest status" id="statusTabs"></div>
+      <div class="pql-tools">
+        <input type="search" placeholder="Search quests…" aria-label="Search quests">
+        <select aria-label="Category"><option>All</option><option>Main</option><option>Side</option><option>Personal</option></select>
+        <button type="button" class="icon" title="New quest" aria-label="New quest"><i class="fa-solid fa-plus"></i></button>
+      </div>
+      <ul class="pql-quests" id="quests"></ul>
+    </aside>
+    <main class="pql-detail" id="detail"></main>
+  </div>
+</div>
+
+<script>
+const STATUS = {
+  active: { label: "Active", icon: "fa-compass" },
+  done:   { label: "Done",   icon: "fa-check" },
+  failed: { label: "Failed", icon: "fa-xmark" },
+  hook:   { label: "Hooks",  icon: "fa-scroll", chip: "Hook" }
+};
+const P = { mira: ["Mira", "#e8b86a"], tor: ["Torvald", "#8cc5e8"], ash: ["Ash", "#b9a3e3"] };
+const Q = [
+  { id: 1, status: "active", cat: "Main", title: "The Drowned Bell", pinned: true, unread: true,
+    giver: "Mayor Holt", where: "Saltmere",
+    summary: "The bell of Saltmere's drowned chapel has started ringing at night. Mayor Holt wants it silenced before the fishing fleet refuses to sail.",
+    log: [["Day 14", "The diary names a second bell-ringer, Old Wenna, who vanished the same week the chapel flooded.", true],
+          ["Day 12", "Holt offered 200 gp and the town's gratitude. The fishermen say the ringing starts at the turn of the tide."]],
+    todos: [["Speak with Mayor Holt", 1], ["Find the bell-ringer's diary", 1], ["Reach the sunken chapel at low tide", 0],
+            ["Find a boat", 0, { sub: true }], ["Buy rope and lanterns", 0, { sub: true, by: "mira" }],
+            ["Learn what happened to Old Wenna", 0, { opt: true }], ["Silence the bell", 0]],
+    notes: [["tor", "Day 13", "Wenna's cottage is still locked. Neighbour says she kept bees. Worth a look before the chapel?"],
+            ["mira", "Day 14", "I'll handle the boat. Bram the ferryman owes me a favour from the card game."]],
+    rewards: [["item", "Tidecaller Lantern", "Wondrous item · uncommon", "fa-lightbulb"], ["cur", "200 gp", "Currency", "fa-coins"],
+              ["xp", "600 XP", "Experience", "fa-star"], ["unknown"]],
+    gm: ["Wenna is the bell. She bound herself to it to hold back the thing below the chapel. Silencing the bell frees it.", "If the party found the bees: a queen in the hive carries her last letter."] },
+  { id: 2, status: "active", cat: "Side", title: "Smuggler's Debt", giver: "Kesh", where: "The Gull & Anchor",
+    summary: "Kesh needs her cargo moved past the harbour watch, or the Red Fins will collect her debt in fingers.",
+    log: [["Day 13", "Kesh's cargo is three sealed crates. She won't say what's inside."]],
+    todos: [["Meet Kesh at the Gull & Anchor", 1], ["Find a way past the harbour watch", 0], ["Deliver the crates to the old mill", 0]],
+    notes: [], rewards: [["cur", "80 gp", "Currency", "fa-coins"], ["text", "A favour from the Red Fins", "Reputation", "fa-handshake"]], gm: [] },
+  { id: 3, status: "active", cat: "Personal", title: "Letters from Home", unread: true, giver: "Ash's sister", where: "—",
+    summary: "A letter from Ash's sister, months late, asks why the family shop was sold.",
+    log: [], todos: [["Write back to Lysa", 0, { by: "ash" }]], notes: [], rewards: [], gm: [] },
+  { id: 4, status: "done", cat: "Main", title: "Wolves at Harrow Ford", giver: "Ranger Ilse", where: "Harrow Ford",
+    summary: "Clear the wolves harrying caravans at the ford.", log: [], todos: [["Track the pack", 1], ["Find the den", 1], ["Deal with the alpha", 1]], notes: [], rewards: [["cur", "120 gp", "Currency", "fa-coins", "Torvald"]], gm: [] },
+  { id: 5, status: "done", cat: "Side", title: "The Miller's Ledger", giver: "Old Pell", where: "Saltmere", summary: "", log: [], todos: [["Recover the ledger", 1]], notes: [], rewards: [], gm: [] },
+  { id: 6, status: "failed", cat: "Side", title: "Escort the Courier", giver: "Guild of Quills", where: "North road",
+    summary: "The courier didn't survive the ambush at Crow's Rest.", log: [], todos: [["Meet the courier", 1], ["Reach Highmoor safely", 0]], notes: [], rewards: [], gm: [] },
+  { id: 7, status: "hook", cat: "Side", title: "Lights on Gallow Hill", giver: "Rumour", where: "Gallow Hill",
+    summary: "Shepherds talk of green lights on the hill after midnight.", log: [], todos: [], notes: [], rewards: [["unknown"]], gm: [] },
+  { id: 8, status: "hook", cat: "Main", title: "The Abbot's Request", unread: true, giver: "Abbot Corwen", where: "St. Aldric's",
+    summary: "The abbot sent word: he has a matter he will only discuss in person.", log: [], todos: [], notes: [], rewards: [], gm: [] }
+];
+
+const state = { status: "active", quest: 1, tab: "todo" };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const prog = q => { const req = q.todos.filter(t => !t[2]?.opt); const d = req.filter(t => t[1]).length; return { d, n: req.length, pct: req.length ? Math.round(d / req.length * 100) : 0 }; };
+const line = pct => `<div class="pql-line" aria-hidden="true"><span style="width:${pct}%"></span></div>`;
+
+function renderTabs() {
+  document.getElementById("statusTabs").innerHTML = Object.entries(STATUS).map(([k, s]) =>
+    `<button type="button" role="tab" aria-selected="${state.status === k}" data-status="${k}">${s.label}<span class="pql-count">${Q.filter(q => q.status === k).length}</span></button>`).join("");
+}
+function renderList() {
+  const list = Q.filter(q => q.status === state.status);
+  const groups = ["Main", "Side", "Personal"].map(c => [c, list.filter(q => q.cat === c)]).filter(([, l]) => l.length);
+  document.getElementById("quests").innerHTML = list.length ? groups.map(([c, l]) => `<li class="pql-group">${c}</li>` + l.map(q => {
+    const p = prog(q);
+    return `<li class="pql-quest ${q.status === "failed" ? "is-failed" : ""}" tabindex="0" data-id="${q.id}" aria-current="${q.id === state.quest}">
+      <div class="t">${q.unread ? '<span class="pql-unread" title="Updated since you last looked"></span>' : ""}<span>${esc(q.title)}</span>${q.pinned ? '<i class="fa-solid fa-thumbtack" title="Tracked"></i>' : ""}</div>
+      <div class="sub">${esc(q.giver)} · ${esc(q.where)}</div>
+      <div class="side">${p.n && q.status === "active" ? `<span class="num">${p.d}/${p.n}</span>${line(p.pct)}` : ""}</div>
+    </li>`; }).join("")).join("") : `<li class="pql-empty">No quests here yet.</li>`;
+}
+function todoHtml(q) {
+  let marked = false;
+  const rows = q.todos.map(([text, done, o = {}], i) => {
+    const next = !done && !marked && !o.opt && (marked = true);
+    const by = o.by ? P[o.by][0] : null;
+    return `<li class="pql-todo ${done ? "done" : ""} ${next ? "next" : ""} ${o.sub ? "sub" : ""}">
+      <input type="checkbox" id="td${i}" ${done ? "checked" : ""}><label for="td${i}">${esc(text)}</label>
+      ${o.opt ? '<span class="pql-tag box">Optional</span>' : ""}
+      ${by ? `<span class="pql-tag">${by}</span><button type="button" class="row-icon" title="Delete" aria-label="Delete ${esc(text)}"><i class="fa-solid fa-xmark"></i></button>` : ""}
+    </li>`; }).join("");
+  return (q.todos.length ? `<ol class="pql-rows">${rows}</ol>` : `<p class="pql-empty">No objectives yet. Add the first step the party wants to take.</p>`) +
+    `<div class="pql-add"><input type="text" placeholder="Add a to-do" aria-label="Add a to-do"><button type="button"><i class="fa-solid fa-plus"></i> Add</button></div>`;
+}
+function infoHtml(q) {
+  return `<div><div class="pql-label">Quest info</div><p class="pql-prose">${esc(q.summary || "The GM hasn't written this quest up yet.")}</p></div>` +
+    (q.log.length ? `<div><div class="pql-label">What we know</div><ol class="pql-rows">${q.log.map(([d, t, n]) => `<li class="pql-entry"><time>${d}</time><p>${esc(t)}${n ? '<span class="pql-new">New</span>' : ""}</p></li>`).join("")}</ol></div>` : "");
+}
+function notesHtml(q) {
+  return (q.notes.length ? `<ol class="pql-rows">${q.notes.map(([w, d, t]) => `<li class="pql-note"><span class="pql-avatar" style="background:${P[w][1]}">${P[w][0][0]}</span><div><div class="who"><b>${P[w][0]}</b>${d}</div><p>${esc(t)}</p></div></li>`).join("")}</ol>` : `<p class="pql-empty">No notes yet. Theories, names, things to remember: write them here for the whole party.</p>`) +
+    `<div class="pql-compose"><textarea placeholder="Write a note for the party" aria-label="New note"></textarea><button type="button"><i class="fa-solid fa-feather"></i> Add note</button></div>`;
+}
+function rewardsHtml(q) {
+  if (!q.rewards.length) return `<p class="pql-empty">No reward has been promised. Yet.</p>`;
+  return `<ol class="pql-rows">${q.rewards.map(([k, name, kind, icon, claimed]) => k === "unknown"
+    ? `<li class="pql-reward unknown"><span class="ico"><i class="fa-solid fa-question"></i></span><div class="grow"><div class="name">???</div><div class="kind">Not revealed yet</div></div></li>`
+    : `<li class="pql-reward ${k}" ${k === "item" ? 'draggable="true" title="Drag onto your character sheet"' : ""}><span class="ico"><i class="fa-solid ${icon}"></i></span><div class="grow"><div class="name">${esc(name)}</div><div class="kind">${kind}</div></div>${claimed ? `<span class="pql-claimed"><i class="fa-solid fa-check"></i> ${claimed}</span>` : k === "item" ? '<button type="button">Claim</button>' : ""}</li>`).join("")}</ol>
+    <p class="pql-hint">Drag an item onto your character sheet, or press Claim to take it.</p>`;
+}
+function gmHtml(q) {
+  return `<div class="pql-gm">${q.gm.length ? q.gm.map(p => `<p class="pql-prose">${esc(p)}</p>`).join("") : '<p class="pql-hint">No GM notes for this quest.</p>'}</div><p class="pql-hint"><i class="fa-solid fa-lock"></i> Only the GM sees this tab.</p>`;
+}
+function renderDetail() {
+  const q = Q.find(x => x.id === state.quest);
+  const el = document.getElementById("detail");
+  if (!q) { el.innerHTML = `<p class="pql-empty">Pick a quest from the list.</p>`; return; }
+  const p = prog(q), s = STATUS[q.status];
+  const tabs = [["info", "Info", "fa-circle-info"], ["todo", "To-do", "fa-list-check", p.n ? `${p.d}/${p.n}` : ""], ["notes", "Notes", "fa-feather", q.notes.length || ""], ["rewards", "Rewards", "fa-gem", q.rewards.length || ""]];
+  const body = { info: infoHtml, todo: todoHtml, notes: notesHtml, rewards: rewardsHtml, gm: gmHtml }[state.tab](q);
+  el.innerHTML = `
+    <div class="pql-head">
+      <div class="pql-head-top"><h2 class="pql-title">${esc(q.title)}</h2>
+        ${q.status === "hook" ? '<button type="button" class="primary"><i class="fa-solid fa-flag"></i>Take on this quest</button>' : ""}
+        <button type="button" class="icon pin" aria-pressed="${!!q.pinned}" title="Track on screen" aria-label="Track on screen"><i class="fa-solid fa-thumbtack"></i></button>
+        <button type="button" class="icon" title="Open as journal page" aria-label="Open as journal page"><i class="fa-solid fa-book-open"></i></button></div>
+      <div class="pql-meta"><span class="pql-status ${q.status}"><i class="fa-solid ${s.icon}"></i>${s.chip || s.label}</span>
+        <span><i class="fa-solid fa-tag"></i>${q.cat}</span><span><i class="fa-solid fa-user"></i><a href="#">${esc(q.giver)}</a></span><span><i class="fa-solid fa-location-dot"></i>${esc(q.where)}</span></div>
+      ${p.n ? `<div class="pql-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${p.n}" aria-valuenow="${p.d}" aria-label="Progress">${line(p.pct)}<span class="num">${p.d} of ${p.n} done</span></div>` : ""}
+    </div>
+    <nav class="pql-tabs" role="tablist">${tabs.map(([k, l, i, c]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${state.tab === k}"><i class="fa-solid ${i}"></i>${l}${c ? `<span class="pql-count">${c}</span>` : ""}</button>`).join("")}
+      <button type="button" role="tab" class="gm" data-tab="gm" aria-selected="${state.tab === "gm"}"><span class="pql-gm-badge">GM</span>Secrets</button></nav>
+    <div class="pql-panel" role="tabpanel">${body}</div>`;
+}
+function render() { renderTabs(); renderList(); renderDetail(); }
+
+document.addEventListener("click", e => {
+  const st = e.target.closest("[data-status]");
+  if (st) { state.status = st.dataset.status; state.quest = Q.find(q => q.status === state.status)?.id; return render(); }
+  const qu = e.target.closest(".pql-quest[data-id]");
+  if (qu) { state.quest = +qu.dataset.id; return render(); }
+  const tb = e.target.closest("[data-tab]");
+  if (tb) { state.tab = tb.dataset.tab; return renderDetail(); }
+  if (e.target.closest("#theme")) { const r = document.documentElement; r.dataset.theme = r.dataset.theme === "light" ? "dark" : "light"; }
+});
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches(".pql-quest")) e.target.click(); });
+
+// #status/quest/tab/theme for screenshots, e.g. #active/1/todo/dark
+const [hs, hq, ht, th] = location.hash.slice(1).split("/");
+if (hs) state.status = hs; if (hq) state.quest = +hq; if (ht) state.tab = ht; if (th) document.documentElement.dataset.theme = th;
+render();
+</script>
+</body>
+</html>

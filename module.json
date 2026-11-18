@@ -1,0 +1,43 @@
+{
+  "id": "party-quest-log",
+  "title": "Party Quest Log",
+  "description": "A quest log the players operate: objectives, notes, rewards. Quests are journal pages.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "Piotr Mieszczak"
+    }
+  ],
+  "url": "https://github.com/PiotrMieszczak/party-quest-log",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "esmodules": [
+    "scripts/main.mjs"
+  ],
+  "styles": [
+    "styles/quest-log.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
+    {
+      "lang": "pl",
+      "name": "Polski",
+      "path": "lang/pl.json"
+    }
+  ],
+  "documentTypes": {
+    "JournalEntryPage": {
+      "quest": {
+        "htmlFields": [
+          "summary"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+<div class="pql-sheet pql-edit">
+  <div class="pql-edit-grid">
+    {{formGroup systemFields.status value=system.status localize=true}}
+    {{formGroup systemFields.category value=system.category localize=true}}
+    {{formGroup systemFields.giver value=system.giver localize=true placeholder=(localize "PQL.GiverPlaceholder")}}
+    {{formGroup systemFields.location value=system.location localize=true placeholder=(localize "PQL.LocationPlaceholder")}}
+  </div>
+  <section>
+    <h3 class="pql-label">{{localize "PQL.Summary"}}</h3>
+    {{formInput systemFields.summary value=system.summary enriched=enrichedSummary toggled=true}}
+  </section>
+  <p class="pql-hint">{{localize "PQL.EditHint"}}</p>
+</div>

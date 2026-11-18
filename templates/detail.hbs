@@ -1,0 +1,210 @@
+{{!-- Quest detail, shared by the Quest Log window and the journal page sheet. Root is re-created each render. --}}
+<div class="pql-detail-root">
+  <div class="pql-head">
+    <div class="pql-head-top">
+      <h2 class="pql-title">{{questTitle}}</h2>
+      {{#if can.accept}}
+        <button type="button" class="pql-primary" data-pql="accept"><i class="fa-solid fa-flag" inert></i>{{localize "PQL.Accept"}}</button>
+      {{/if}}
+      <button type="button" class="pql-icon pql-pin" data-pql="track" aria-pressed="{{#if tracked}}true{{else}}false{{/if}}"
+              data-tooltip="PQL.Track" aria-label="{{localize "PQL.Track"}}"><i class="fa-solid fa-thumbtack" inert></i></button>
+      {{#if inLog}}
+        {{#if can.gm}}
+          <button type="button" class="pql-icon" data-pql="edit" data-tooltip="PQL.EditQuest" aria-label="{{localize "PQL.EditQuest"}}"><i class="fa-solid fa-pen" inert></i></button>
+        {{/if}}
+        <button type="button" class="pql-icon" data-pql="journal" data-tooltip="PQL.OpenJournal" aria-label="{{localize "PQL.OpenJournal"}}"><i class="fa-solid fa-book-open" inert></i></button>
+      {{/if}}
+    </div>
+    <div class="pql-meta">
+      {{#if can.gm}}
+        <label class="pql-status-select pql-status--{{status}}">
+          <i class="fa-solid {{statusIcon}}" inert></i>
+          <select data-pql="status" aria-label="{{localize "PQL.StatusLabel"}}">
+            {{#each statusChoices}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+          </select>
+        </label>
+      {{else}}
+        <span class="pql-status pql-status--{{status}}"><i class="fa-solid {{statusIcon}}" inert></i>{{statusLabel}}</span>
+      {{/if}}
+      <span><i class="fa-solid fa-tag" inert></i>{{category}}</span>
+      {{#if giver}}<span><i class="fa-solid fa-user" inert></i>{{giver}}</span>{{/if}}
+      {{#if location}}<span><i class="fa-solid fa-location-dot" inert></i>{{location}}</span>{{/if}}
+    </div>
+    {{#if progress.total}}
+      <div class="pql-progress" role="progressbar" aria-label="{{localize "PQL.Progress"}}"
+           aria-valuemin="0" aria-valuemax="{{progress.total}}" aria-valuenow="{{progress.done}}">
+        <div class="pql-line"><span style="width: {{progress.pct}}%"></span></div>
+        <span class="pql-num">{{localize "PQL.ProgressCount" done=progress.done total=progress.total}}</span>
+      </div>
+    {{/if}}
+  </div>
+
+  <nav class="pql-tabs" aria-label="{{localize "PQL.Sections"}}">
+    {{#each sections}}
+      <button type="button" data-pql="tab" data-tab="{{id}}" aria-pressed="{{#if active}}true{{else}}false{{/if}}">
+        <i class="fa-solid {{icon}}" inert></i>{{label}}{{#if count}}<span class="pql-count">{{count}}</span>{{/if}}
+      </button>
+    {{/each}}
+    {{#if can.gm}}
+      <button type="button" class="pql-tab-gm" data-pql="tab" data-tab="gm" aria-pressed="{{#if tab.gm}}true{{else}}false{{/if}}">
+        <span class="pql-gm-badge">{{localize "PQL.GM"}}</span>{{localize "PQL.TabSecrets"}}
+      </button>
+    {{/if}}
+  </nav>
+
+  <div class="pql-panel">
+    {{#if tab.info}}
+      <section>
+        <h3 class="pql-label">{{localize "PQL.Summary"}}</h3>
+        {{#if summary}}<div class="pql-prose">{{{summary}}}</div>{{else}}<p class="pql-empty">{{localize "PQL.NoSummary"}}</p>{{/if}}
+      </section>
+      <section>
+        <h3 class="pql-label">{{localize "PQL.WhatWeKnow"}}</h3>
+        {{#if log.length}}
+          <ol class="pql-rows">
+            {{#each log}}
+              <li class="pql-entry" data-id="{{id}}">
+                <span class="pql-when">{{label}}</span>
+                <p>{{text}}{{#if isNew}}<span class="pql-new">{{localize "PQL.New"}}</span>{{/if}}</p>
+                {{#if @root.can.gm}}<button type="button" class="pql-row-icon" data-pql="log-delete" aria-label="{{localize "PQL.Delete"}}"><i class="fa-solid fa-xmark" inert></i></button>{{/if}}
+              </li>
+            {{/each}}
+          </ol>
+        {{else}}
+          <p class="pql-empty">{{localize "PQL.NoLog"}}</p>
+        {{/if}}
+        {{#if can.gm}}
+          <div class="pql-add" data-form>
+            <input type="text" name="label" class="pql-when-input" placeholder="{{localize "PQL.LogLabel"}}" aria-label="{{localize "PQL.LogLabel"}}">
+            <input type="text" data-input="log" placeholder="{{localize "PQL.LogPlaceholder"}}" aria-label="{{localize "PQL.LogPlaceholder"}}">
+            <button type="button" data-pql="log-add" data-submit><i class="fa-solid fa-plus" inert></i>{{localize "PQL.Add"}}</button>
+          </div>
+        {{/if}}
+      </section>
+    {{/if}}
+
+    {{#if tab.todo}}
+      {{#if objectives.length}}
+        <ol class="pql-rows">
+          {{#each objectives}}
+            <li class="pql-todo{{#if done}} is-done{{/if}}{{#if isNext}} is-next{{/if}}{{#if depth}} is-sub{{/if}}{{#if hidden}} is-hidden{{/if}}" data-id="{{id}}">
+              <input type="checkbox" id="pql-{{@root.uuid}}-{{id}}" data-pql="done" {{checked done}}
+                     {{#unless @root.can.tick}}disabled{{/unless}} {{#if canEdit}}aria-label="{{text}}"{{/if}}>
+              {{#if canEdit}}
+                <input type="text" class="pql-text" data-pql="obj-text" value="{{text}}" aria-label="{{localize "PQL.ObjectiveText"}}">
+              {{else}}
+                <label class="pql-text" for="pql-{{@root.uuid}}-{{id}}">{{text}}</label>
+              {{/if}}
+              {{#if hidden}}<span class="pql-tag pql-tag--box">{{localize "PQL.Hidden"}}</span>{{/if}}
+              {{#if optional}}<span class="pql-tag pql-tag--box">{{localize "PQL.Optional"}}</span>{{/if}}
+              {{#if author}}<span class="pql-tag">{{author}}</span>{{/if}}
+              <span class="pql-row-tools">
+                {{#if canIndent}}
+                  <button type="button" class="pql-row-icon" data-pql="obj-indent" data-tooltip="{{#if depth}}PQL.Outdent{{else}}PQL.Indent{{/if}}"
+                          aria-label="{{#if depth}}{{localize "PQL.Outdent"}}{{else}}{{localize "PQL.Indent"}}{{/if}}">
+                    <i class="fa-solid {{#if depth}}fa-outdent{{else}}fa-indent{{/if}}" inert></i></button>
+                {{/if}}
+                {{#if @root.can.gm}}
+                  <button type="button" class="pql-row-icon" data-pql="obj-optional" aria-pressed="{{#if optional}}true{{else}}false{{/if}}"
+                          data-tooltip="PQL.ToggleOptional" aria-label="{{localize "PQL.ToggleOptional"}}"><i class="fa-solid fa-circle-half-stroke" inert></i></button>
+                  <button type="button" class="pql-row-icon" data-pql="obj-hidden" aria-pressed="{{#if hidden}}true{{else}}false{{/if}}"
+                          data-tooltip="PQL.ToggleHidden" aria-label="{{localize "PQL.ToggleHidden"}}"><i class="fa-solid {{#if hidden}}fa-eye-slash{{else}}fa-eye{{/if}}" inert></i></button>
+                {{/if}}
+                {{#if canEdit}}
+                  <button type="button" class="pql-row-icon" data-pql="obj-delete" data-tooltip="PQL.Delete"
+                          aria-label="{{localize "PQL.DeleteObjective" text=text}}"><i class="fa-solid fa-xmark" inert></i></button>
+                {{/if}}
+              </span>
+            </li>
+          {{/each}}
+        </ol>
+      {{else}}
+        <p class="pql-empty">{{#if can.add}}{{localize "PQL.NoObjectivesCanAdd"}}{{else}}{{localize "PQL.NoObjectives"}}{{/if}}</p>
+      {{/if}}
+      {{#if can.add}}
+        <div class="pql-add" data-form>
+          <input type="text" data-input="objective" placeholder="{{localize "PQL.AddPlaceholder"}}" aria-label="{{localize "PQL.AddPlaceholder"}}">
+          <button type="button" data-pql="obj-add" data-submit><i class="fa-solid fa-plus" inert></i>{{localize "PQL.Add"}}</button>
+        </div>
+      {{/if}}
+    {{/if}}
+
+    {{#if tab.notes}}
+      {{#if notes.length}}
+        <ol class="pql-rows">
+          {{#each notes}}
+            <li class="pql-note" data-id="{{id}}">
+              <span class="pql-avatar" style="background: {{color}}" aria-hidden="true">{{initial}}</span>
+              <div class="pql-note-body">
+                <div class="pql-who"><b>{{name}}</b>{{date}}</div>
+                <p>{{text}}</p>
+              </div>
+              {{#if canEdit}}<button type="button" class="pql-row-icon" data-pql="note-delete" data-tooltip="PQL.Delete" aria-label="{{localize "PQL.Delete"}}"><i class="fa-solid fa-xmark" inert></i></button>{{/if}}
+            </li>
+          {{/each}}
+        </ol>
+      {{else}}
+        <p class="pql-empty">{{localize "PQL.NoNotes"}}</p>
+      {{/if}}
+      {{#if can.note}}
+        <div class="pql-compose" data-form>
+          <textarea data-input="note" placeholder="{{localize "PQL.NotePlaceholder"}}" aria-label="{{localize "PQL.NotePlaceholder"}}"></textarea>
+          <button type="button" data-pql="note-add" data-submit><i class="fa-solid fa-feather" inert></i>{{localize "PQL.AddNote"}}</button>
+        </div>
+      {{/if}}
+    {{/if}}
+
+    {{#if tab.rewards}}
+      <div class="pql-drop" {{#if can.gm}}data-drop="rewards"{{/if}}>
+        {{#if rewards.length}}
+          <ol class="pql-rows">
+            {{#each rewards}}
+              {{#if visible}}
+                <li class="pql-reward{{#unless revealed}} is-unrevealed{{/unless}}" data-id="{{id}}"
+                    {{#if isItem}}draggable="true" data-drag-uuid="{{uuid}}" data-tooltip="PQL.DragHint"{{/if}}>
+                  <span class="pql-reward-icon">{{#if img}}<img src="{{img}}" alt="">{{else}}<i class="fa-solid {{icon}}" inert></i>{{/if}}</span>
+                  <div class="pql-grow"><div class="pql-name">{{name}}</div><div class="pql-kind">{{kindLabel}}</div></div>
+                  {{#if claimedBy}}<span class="pql-tag"><i class="fa-solid fa-check" inert></i> {{claimedBy}}</span>
+                  {{else if canClaim}}<button type="button" data-pql="reward-claim">{{localize "PQL.Claim"}}</button>{{/if}}
+                  {{#if @root.can.gm}}
+                    <button type="button" class="pql-row-icon" data-pql="reward-reveal" aria-pressed="{{#if revealed}}true{{else}}false{{/if}}"
+                            data-tooltip="{{#if revealed}}PQL.Unreveal{{else}}PQL.Reveal{{/if}}" aria-label="{{#if revealed}}{{localize "PQL.Unreveal"}}{{else}}{{localize "PQL.Reveal"}}{{/if}}">
+                      <i class="fa-solid {{#if revealed}}fa-eye{{else}}fa-eye-slash{{/if}}" inert></i></button>
+                    <button type="button" class="pql-row-icon" data-pql="reward-delete" data-tooltip="PQL.Delete" aria-label="{{localize "PQL.Delete"}}"><i class="fa-solid fa-xmark" inert></i></button>
+                  {{/if}}
+                </li>
+              {{else}}
+                <li class="pql-reward is-unknown">
+                  <span class="pql-reward-icon"><i class="fa-solid fa-question" inert></i></span>
+                  <div class="pql-grow"><div class="pql-name">???</div><div class="pql-kind">{{localize "PQL.NotRevealed"}}</div></div>
+                </li>
+              {{/if}}
+            {{/each}}
+          </ol>
+          <p class="pql-hint">{{localize "PQL.ClaimHint"}}</p>
+        {{else}}
+          <p class="pql-empty">{{#if can.gm}}{{localize "PQL.NoRewardsGM"}}{{else}}{{localize "PQL.NoRewards"}}{{/if}}</p>
+        {{/if}}
+        {{#if can.gm}}
+          <div class="pql-add" data-form>
+            <select name="kind" aria-label="{{localize "PQL.RewardKind"}}">
+              {{#each rewardKinds}}<option value="{{value}}">{{label}}</option>{{/each}}
+            </select>
+            <input type="text" data-input="reward" placeholder="{{localize "PQL.RewardPlaceholder"}}" aria-label="{{localize "PQL.RewardPlaceholder"}}">
+            <button type="button" data-pql="reward-add" data-submit><i class="fa-solid fa-plus" inert></i>{{localize "PQL.Add"}}</button>
+          </div>
+        {{/if}}
+      </div>
+    {{/if}}
+
+    {{#if tab.gm}}
+      <div class="pql-gm">
+        {{#if gmText}}<div class="pql-prose">{{{gmText}}}</div>{{else}}<p class="pql-empty">{{localize "PQL.NoGmNotes"}}</p>{{/if}}
+      </div>
+      <div class="pql-gm-foot">
+        <p class="pql-hint"><i class="fa-solid fa-lock" inert></i> {{localize "PQL.GmOnly"}}</p>
+        <button type="button" data-pql="gm-page"><i class="fa-solid fa-pen" inert></i>{{#if hasGmPage}}{{localize "PQL.EditGmNotes"}}{{else}}{{localize "PQL.CreateGmNotes"}}{{/if}}</button>
+      </div>
+    {{/if}}
+  </div>
+</div>

@@ -1,0 +1,7 @@
+<section class="pql-detail">
+  {{#if hasDetail}}
+    {{> "modules/party-quest-log/templates/detail.hbs"}}
+  {{else}}
+    <p class="pql-empty">{{localize "PQL.PickQuest"}}</p>
+  {{/if}}
+</section>

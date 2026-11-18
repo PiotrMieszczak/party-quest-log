@@ -1,0 +1,49 @@
+<aside class="pql-list">
+  <nav class="pql-status-tabs" aria-label="{{localize "PQL.StatusLabel"}}">
+    {{#each statuses}}
+      <button type="button" data-status="{{key}}" aria-pressed="{{#if active}}true{{else}}false{{/if}}">
+        {{label}}<span class="pql-count">{{count}}</span>
+      </button>
+    {{/each}}
+  </nav>
+  <div class="pql-tools">
+    <input type="search" data-search value="{{search}}" placeholder="{{localize "PQL.Search"}}" aria-label="{{localize "PQL.Search"}}">
+    <select data-category aria-label="{{localize "PQL.CategoryLabel"}}">
+      <option value="">{{localize "PQL.AllCategories"}}</option>
+      {{#each categories}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+    </select>
+    {{#if isGM}}
+      <button type="button" class="pql-icon" data-pql="new" data-tooltip="PQL.NewQuest" aria-label="{{localize "PQL.NewQuest"}}"><i class="fa-solid fa-plus" inert></i></button>
+    {{/if}}
+  </div>
+  {{#if empty}}
+    <p class="pql-quests pql-empty">{{localize "PQL.NoQuestsHere"}}</p>
+  {{else}}
+    <ul class="pql-quests">
+      {{#each groups}}
+        <li class="pql-group">
+          <div class="pql-group-label">{{label}}</div>
+          <ul>
+            {{#each quests}}
+              <li class="pql-quest{{#if failed}} is-failed{{/if}}" data-uuid="{{uuid}}" tabindex="0"
+                  aria-current="{{#if selected}}true{{else}}false{{/if}}" {{#if hidden}}hidden{{/if}}>
+                <div class="pql-quest-title">
+                  {{#if unread}}<span class="pql-unread" data-tooltip="PQL.Unread" aria-label="{{localize "PQL.Unread"}}"></span>{{/if}}
+                  <span>{{name}}</span>
+                  {{#if tracked}}<i class="fa-solid fa-thumbtack pql-tracked" data-tooltip="PQL.Tracked" aria-label="{{localize "PQL.Tracked"}}"></i>{{/if}}
+                </div>
+                {{#if sub}}<div class="pql-quest-sub">{{sub}}</div>{{/if}}
+                {{#if progress.total}}
+                  <div class="pql-quest-side">
+                    <span class="pql-num">{{progress.done}}/{{progress.total}}</span>
+                    <div class="pql-line" aria-hidden="true"><span style="width: {{progress.pct}}%"></span></div>
+                  </div>
+                {{/if}}
+              </li>
+            {{/each}}
+          </ul>
+        </li>
+      {{/each}}
+    </ul>
+  {{/if}}
+</aside>

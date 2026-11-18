@@ -1,0 +1,305 @@
+/* Party Quest Log follows Synced Music's design system (foundry-music/DESIGN.md):
+   - Never style Foundry's window header or set a font family; Signika is inherited.
+   - Neutrals are mixed from the window's currentColor, so one stylesheet fits light and dark.
+   - Foundry orange marks what is "in play": the Active status, the current step, progress,
+     tracking, the primary action and focus. Never selection, hover or done states.
+   - Flat inside the window, 4px corners, the 2px progress line as signature. */
+
+.pql-app,
+.pql-quest {
+  --pql-accent: #ff6400;
+  --pql-on-accent: #1b1610;
+  --pql-line: color-mix(in srgb, currentColor 18%, transparent);
+  --pql-fill: color-mix(in srgb, currentColor 7%, transparent);
+  --pql-fill-strong: color-mix(in srgb, currentColor 13%, transparent);
+  --pql-muted: color-mix(in srgb, currentColor 68%, transparent);
+  --pql-wash: color-mix(in srgb, var(--pql-accent) 14%, transparent);
+  --pql-radius: 4px;
+}
+:is(.pql-app, .pql-quest).theme-light,
+.theme-light :is(.pql-app, .pql-quest):not(.theme-dark) {
+  --pql-accent: #b84400;
+  --pql-on-accent: #fff;
+}
+
+:is(.pql-app, .pql-quest) :is(p, h2, h3, ol, ul) { margin: 0; }
+:is(.pql-app, .pql-quest) :is(ol, ul) { list-style: none; padding: 0; }
+:is(.pql-app, .pql-quest) :is(button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--pql-accent);
+  outline-offset: 1px;
+  box-shadow: none;
+}
+:is(.pql-app, .pql-quest) button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  width: auto;
+  min-height: 2rem;
+  margin: 0;
+  line-height: 1;
+  white-space: nowrap;
+}
+:is(.pql-app, .pql-quest) .pql-icon { width: 2rem; flex: none; padding: 0; }
+.pql-num { font-variant-numeric: tabular-nums; }
+.pql-count { font-size: 0.8em; font-variant-numeric: tabular-nums; color: var(--pql-muted); font-weight: 400; }
+.pql-empty { padding: 0.75rem; color: var(--pql-muted); text-align: center; line-height: 1.4; }
+.pql-hint { font-size: 0.8rem; color: var(--pql-muted); }
+.pql-label { font-size: 0.8rem; font-weight: 400; color: var(--pql-muted); border: none; margin-bottom: 0.25rem; }
+.pql-prose { max-width: 68ch; line-height: 1.45; }
+.pql-prose > :first-child { margin-top: 0; }
+.pql-prose > :last-child { margin-bottom: 0; }
+
+/* Shared tab look: Synced Music's playlist tabs. */
+:is(.pql-status-tabs, .pql-tabs) { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+:is(.pql-status-tabs, .pql-tabs) button { padding: 0 0.6rem; background: var(--pql-fill); border: 1px solid var(--pql-line); }
+:is(.pql-status-tabs, .pql-tabs) button[aria-pressed="true"] { background: var(--pql-fill-strong); border-color: currentColor; font-weight: 600; }
+
+/* The signature: a 2px line, filled with the accent. */
+.pql-line { height: 2px; border-radius: 1px; background: var(--pql-line); overflow: hidden; }
+.pql-line > span { display: block; height: 100%; background: var(--pql-accent); }
+
+/* ── Quest Log window ───────────────────────────────────────────── */
+.pql-app .window-content {
+  display: grid;
+  grid-template-columns: minmax(15rem, 18.75rem) 1fr;
+  padding: 0;
+  overflow: hidden;
+}
+.pql-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  padding: 0.75rem;
+  border-right: 1px solid var(--pql-line);
+}
+.pql-status-tabs button { flex: 1; padding: 0 0.5rem; }
+.pql-tools { display: flex; gap: 0.35rem; }
+.pql-tools input { flex: 1; min-width: 0; height: 2rem; }
+.pql-tools select { width: auto; height: 2rem; }
+.pql-quests {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--pql-line);
+  border-radius: var(--pql-radius);
+  scrollbar-width: thin;
+  scrollbar-color: var(--pql-line) transparent;
+}
+.pql-group-label {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  color: var(--pql-muted);
+  background: var(--pql-fill);
+  border-bottom: 1px solid var(--pql-line);
+}
+.pql-group:not(:first-child) .pql-group-label { border-top: 1px solid var(--pql-line); }
+.pql-quest {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.15rem 0.5rem;
+  min-height: 3rem;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--pql-line);
+  cursor: pointer;
+}
+.pql-group:last-child .pql-quest:last-child { border-bottom: none; }
+.pql-quest:hover { background: var(--pql-fill); }
+.pql-quest[aria-current="true"] { background: var(--pql-fill-strong); }
+.pql-quest-title { display: flex; align-items: center; gap: 0.35rem; min-width: 0; font-weight: 600; }
+.pql-quest-title span:not(.pql-unread) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pql-quest-sub { grid-column: 1; font-size: 0.8rem; color: var(--pql-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pql-quest-side { grid-row: 1 / 3; grid-column: 2; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; font-size: 0.8rem; color: var(--pql-muted); }
+.pql-quest-side .pql-line { width: 3rem; }
+.pql-quest.is-failed .pql-quest-title span { color: var(--pql-muted); text-decoration: line-through; }
+.pql-tracked { color: var(--pql-accent); font-size: 0.75rem; }
+.pql-unread { flex: none; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.pql-detail { display: flex; flex-direction: column; min-height: 0; padding: 0.75rem; overflow: hidden; }
+.pql-detail > .pql-empty { margin: auto; }
+
+/* ── Quest detail (log + page sheet) ───────────────────────────── */
+.pql-detail-root { display: flex; flex-direction: column; gap: 0.75rem; min-height: 0; flex: 1; }
+.pql-head {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  background: var(--pql-fill);
+  border: 1px solid var(--pql-line);
+  border-radius: var(--pql-radius);
+}
+.pql-head-top { display: flex; align-items: flex-start; gap: 0.5rem; }
+.pql-title { flex: 1; min-width: 0; font-size: 1.15rem; font-weight: 600; line-height: 1.25; border: none; text-wrap: balance; overflow-wrap: anywhere; }
+:is(.pql-app, .pql-quest) .pql-primary,
+:is(.pql-app, .pql-quest) .pql-primary:hover {
+  padding: 0 0.9rem;
+  background: var(--pql-accent);
+  border-color: var(--pql-accent);
+  color: var(--pql-on-accent);
+  font-weight: 600;
+}
+:is(.pql-app, .pql-quest) .pql-primary:hover { filter: brightness(1.08); }
+.pql-pin[aria-pressed="true"] { color: var(--pql-accent); border-color: var(--pql-accent); }
+
+.pql-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; font-size: 0.9rem; color: var(--pql-muted); }
+.pql-meta > span > i { margin-right: 0.3em; }
+.pql-status,
+.pql-status-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  min-height: 1.5rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--pql-line);
+  border-radius: 3px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--pql-muted);
+}
+.pql-status-select select {
+  height: 1.4rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+:is(.pql-status, .pql-status-select).pql-status--active { color: var(--pql-accent); border-color: var(--pql-accent); }
+.pql-progress { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+.pql-progress .pql-line { flex: 1; }
+.pql-progress .pql-num { font-size: 0.8rem; color: var(--pql-muted); white-space: nowrap; }
+
+.pql-tabs .pql-tab-gm { margin-left: auto; }
+.pql-gm-badge { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; padding: 0.05rem 0.3rem; border: 1px solid var(--pql-line); border-radius: 2px; color: var(--pql-muted); }
+
+.pql-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pql-line) transparent;
+}
+.pql-panel > section { display: flex; flex-direction: column; gap: 0.25rem; }
+.pql-panel > section + section { margin-top: 0.5rem; }
+
+/* Bordered lists with dividers: Synced Music's track list. */
+.pql-rows { border: 1px solid var(--pql-line); border-radius: var(--pql-radius); }
+.pql-rows > li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--pql-line);
+}
+.pql-rows > li:last-child { border-bottom: none; }
+.pql-rows > li:hover { background: var(--pql-fill); }
+
+/* Quiet row controls, like Foundry's directory rows. */
+:is(.pql-app, .pql-quest) .pql-row-icon {
+  flex: none;
+  width: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0;
+  font-size: 0.8rem;
+  background: transparent;
+  border-color: transparent;
+  color: var(--pql-muted);
+}
+:is(.pql-app, .pql-quest) .pql-row-icon:hover { background: var(--pql-fill-strong); color: inherit; }
+.pql-row-icon[aria-pressed="true"] { color: inherit; }
+.pql-row-tools { display: flex; flex: none; }
+/* GM-only step tools appear on hover or keyboard focus; delete stays visible. */
+.pql-row-tools .pql-row-icon:not([data-pql$="delete"]) { opacity: 0; }
+.pql-rows > li:is(:hover, :focus-within) .pql-row-tools .pql-row-icon { opacity: 1; }
+@media (hover: none) { .pql-row-tools .pql-row-icon:not([data-pql$="delete"]) { opacity: 1; } }
+.pql-tag { flex: none; font-size: 0.75rem; color: var(--pql-muted); }
+.pql-tag--box { padding: 0 0.3rem; border: 1px solid var(--pql-line); border-radius: 2px; }
+
+.pql-entry { align-items: baseline !important; }
+.pql-when { flex: none; width: 4rem; font-size: 0.8rem; color: var(--pql-muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.pql-entry p { flex: 1; max-width: 64ch; padding: 0.35rem 0; line-height: 1.45; }
+.pql-new { margin-left: 0.4rem; font-size: 0.7rem; font-weight: 600; color: var(--pql-accent); }
+
+/* Objectives */
+.pql-todo > input[type="checkbox"] { flex: none; margin: 0; }
+.pql-todo .pql-text { flex: 1; min-width: 0; line-height: 1.4; cursor: pointer; }
+.pql-todo.is-sub { padding-left: 2rem; }
+/* The current step is "in play": accent wash, like the playing track row. */
+.pql-todo.is-next { background: var(--pql-wash); }
+.pql-todo.is-next .pql-text { font-weight: 600; }
+.pql-todo.is-done .pql-text { color: var(--pql-muted); text-decoration: line-through; }
+.pql-todo.is-hidden .pql-text { color: var(--pql-muted); font-style: italic; }
+/* Editable steps read as text until hovered or focused. */
+.pql-todo input.pql-text {
+  height: 2rem;
+  padding: 0 calc(0.3rem - 1px);
+  margin-left: -0.3rem; /* text lines up with read-only rows */
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  cursor: text;
+}
+.pql-todo input.pql-text:hover { border-color: var(--pql-line); }
+.pql-todo input.pql-text:focus { border-color: currentColor; }
+
+.pql-add { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+.pql-add input { flex: 1; min-width: 0; height: 2rem; }
+.pql-add select { width: auto; height: 2rem; }
+.pql-add .pql-when-input { flex: 0 0 6rem; }
+
+/* Notes */
+.pql-note { align-items: flex-start !important; padding-block: 0.5rem !important; }
+.pql-avatar { flex: none; width: 1.75rem; height: 1.75rem; border-radius: 50%; display: grid; place-items: center; font-size: 0.75rem; font-weight: 600; color: #1b1610; }
+.pql-note-body { flex: 1; min-width: 0; }
+.pql-who { font-size: 0.8rem; color: var(--pql-muted); }
+.pql-who b { color: inherit; font-weight: 600; margin-right: 0.35rem; }
+.pql-note p { max-width: 64ch; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
+.pql-compose { display: grid; gap: 0.35rem; }
+.pql-compose textarea { min-height: 4rem; resize: vertical; }
+.pql-compose button { justify-self: end; }
+
+/* Rewards */
+.pql-drop { display: flex; flex-direction: column; gap: 0.5rem; }
+.pql-reward-icon {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--pql-line);
+  border-radius: 3px;
+  background: var(--pql-fill);
+  color: var(--pql-muted);
+}
+.pql-reward-icon img { width: 100%; height: 100%; object-fit: cover; border: none; }
+.pql-grow { flex: 1; min-width: 0; }
+.pql-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pql-kind { font-size: 0.8rem; color: var(--pql-muted); }
+.pql-reward[draggable="true"] { cursor: grab; }
+.pql-reward.is-unknown .pql-name { color: var(--pql-muted); letter-spacing: 0.08em; }
+.pql-reward.is-unrevealed .pql-name { color: var(--pql-muted); font-style: italic; }
+
+/* GM secrets */
+.pql-gm { padding: 0.75rem; border: 1px dashed var(--pql-line); border-radius: var(--pql-radius); }
+.pql-gm-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+
+/* ── Journal page sheet ─────────────────────────────────────────── */
+.pql-sheet { display: flex; flex-direction: column; gap: 0.75rem; }
+.pql-sheet .pql-panel { overflow: visible; }
+.pql-edit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.5rem 1rem; }
+.pql-edit-grid .form-group { margin: 0; }
+
+/* Journal sidebar button */
+.pql-open { flex: 1 1 100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.pql-app, .pql-quest) * { transition: none !important; }
+}
