@@ -42,8 +42,14 @@ Real secrets belong on the GM Secrets page, which players cannot read. See
 
 ## Install
 
-Clone or copy this folder into your Foundry `Data/modules/` folder as `party-quest-log`,
-then enable **Party Quest Log** in your world.
+In Foundry, **Add-on Modules → Install Module**, paste this manifest URL and press Install:
+
+```
+https://github.com/PiotrMieszczak/party-quest-log/releases/latest/download/module.json
+```
+
+Then enable **Party Quest Log** in your world. To work on it, clone this repository into
+`Data/modules/party-quest-log` instead.
 
 ## Development
 

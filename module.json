@@ -9,6 +9,8 @@
     }
   ],
   "url": "https://github.com/PiotrMieszczak/party-quest-log",
+  "manifest": "https://github.com/PiotrMieszczak/party-quest-log/releases/latest/download/module.json",
+  "download": "https://github.com/PiotrMieszczak/party-quest-log/releases/download/v0.1.0/party-quest-log.zip",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
